@@ -10,7 +10,27 @@ const {
 
 function registerSocketHandlers(io, socket) {
 
+function endRound(roomId) {
+  const room = getRoom(roomId);
 
+  io.to(roomId).emit("systemMessage", `⏰ Time's up! Word was: ${room.word}`);
+
+  let count = 3;
+
+  const countdown = setInterval(() => {
+    io.to(roomId).emit("systemMessage", `Next round in ${count}...`);
+    count--;
+
+    if (count < 0) {
+      clearInterval(countdown);
+
+      nextDrawer(room);
+      room.round++;
+
+      startRound(roomId);
+    }
+  }, 1000);
+}
   
 
   socket.on("startGame", (roomId) => {
@@ -22,7 +42,6 @@ function registerSocketHandlers(io, socket) {
   room.started = true;
   room.state = "playing";
   room.drawer = room.players[0];
-
   startRound(roomId);
   });
 
@@ -55,9 +74,7 @@ function registerSocketHandlers(io, socket) {
     if (room.timeLeft <= 0) 
       {
         clearInterval(timer);
-        nextDrawer(room);
-        room.round++;
-        startRound(roomId);
+        endRound(roomId);
       }
 
     }, 1000);
