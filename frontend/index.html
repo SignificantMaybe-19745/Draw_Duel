@@ -1,28 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whiteboard</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Whiteboard Game</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div id="sidebar">
 
-  <h3>Players</h3>
-  <div id="players"></div>
+  <!-- Top Bar -->
+  <header id="topbar">
+    <div class="brand">🎨 Whiteboard Game</div>
+    <div id="timer">60</div>
+    <button id="startBtn">Start Game</button>
+  </header>
 
-  <button id="clearBtn">Clear Board</button>
-   <button id="startBtn">Start Game</button>
-  <div id="timer">60</div>
-  <div id="chatBox"></div>
+  <!-- Main Layout -->
+  <div id="app">
 
-<input id="chatInput" placeholder="Type guess..." />
-<button id="sendBtn">Send</button>
-</div>
-    <canvas id="board"></canvas>
-    <!-- socket.io client library -->
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
+    <!-- Left Panel -->
+    <aside id="leftPanel">
+      <div class="card">
+        <h3>Players</h3>
+        <div id="players"></div>
+      </div>
+
+      <button id="clearBtn">Clear Board</button>
+    </aside>
+
+    <!-- Center Canvas -->
+    <main id="centerPanel">
+      <canvas id="board"></canvas>
+    </main>
+
+    <!-- Right Panel -->
+    <aside id="rightPanel">
+      <div class="card">
+        <h3>Chat</h3>
+        <div id="chatBox"></div>
+      </div>
+
+      <div id="chatControls">
+        <input id="chatInput" placeholder="Type guess..." />
+        <button id="sendBtn">Send</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
