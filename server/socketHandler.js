@@ -10,6 +10,22 @@ const {
 
 function registerSocketHandlers(io, socket) {
 
+
+  
+
+  socket.on("startGame", (roomId) => {
+  const room = getRoom(roomId);
+
+  if (socket.id !== room.host) return;
+  if (room.players.length < 2) return;
+
+  room.started = true;
+  room.state = "playing";
+  room.drawer = room.players[0];
+
+  startRound(roomId);
+  });
+
   function startRound(roomId) {
   const room = getRoom(roomId);
 
@@ -36,43 +52,48 @@ function registerSocketHandlers(io, socket) {
 
     io.to(roomId).emit("timer", room.timeLeft);
 
-    if (room.timeLeft <= 0) {
-      clearInterval(timer);
+    if (room.timeLeft <= 0) 
+      {
+        clearInterval(timer);
+        nextDrawer(room);
+        room.round++;
+        startRound(roomId);
+      }
 
-      nextDrawer(room);
-      room.round++;
+    }, 1000);
+  }
 
-      startRound(roomId);
-    }
+    console.log("🔥 SOCKET CONNECTED", socket.id);
 
-  }, 1000);
-}
+   socket.on("joinRoom", (roomId) => {
+  socket.join(roomId);
 
-  console.log("🔥 SOCKET CONNECTED", socket.id);
+  const room = addPlayer(roomId, socket.id);
 
-  socket.on("joinRoom", (roomId) => {
-
-    
-
-    socket.join(roomId);
-
-    const room = addPlayer(roomId, socket.id);
-
-     // ✅ send players list
   io.to(roomId).emit("playersUpdate", room.players);
-    // if first player → becomes drawer
-    if (!room.drawer) {
-  room.drawer = socket.id;
-  startRound(roomId);
-}
 
-    // notify all clients
-    io.to(roomId).emit("gameState", {
-      drawer: room.drawer
-    });
-
-    socket.emit("strokeHistory", room.strokes);
+  // Always update lobby info
+  io.to(roomId).emit("lobbyState", {
+    host: room.host,
+    players: room.players,
+    started: room.started
   });
+
+  // If game has already started, send proper gameState per player
+  if (room.started) {
+    room.players.forEach((playerId) => {
+      const target = io.sockets.sockets.get(playerId);
+      if (!target) return;
+
+      target.emit("gameState", {
+        drawer: room.drawer,
+        word: playerId === room.drawer ? room.word : null
+      });
+    });
+  }
+
+  socket.emit("strokeHistory", room.strokes);
+});
 
   socket.on("draw", (data) => {
     const { roomId } = data;

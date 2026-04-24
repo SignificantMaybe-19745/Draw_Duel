@@ -9,7 +9,10 @@ function getRoom(roomId) {
       drawer: null,
       word: "apple",
       round: 1,
-      timeLeft:60
+      timeLeft: 60,
+      started: false,
+      state: "waiting",
+      host: null
     };
   }
   return rooms[roomId];
@@ -17,7 +20,13 @@ function getRoom(roomId) {
 
 function addPlayer(roomId, socketId) {
   const room = getRoom(roomId);
+
+  if (!room.host) {
+    room.host = socketId;
+  }
+
   room.players.push(socketId);
+
   return room;
 }
 

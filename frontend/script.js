@@ -7,7 +7,6 @@
 
   const socket = io("http://localhost:3000");
 
-  // --- canvas setup FIRST ---
   const canvas = document.getElementById("board");
   if (!canvas) {
     console.error("Canvas element #board not found!");
@@ -24,7 +23,6 @@
   ctx.lineJoin = "round";
   ctx.strokeStyle = "black";
 
-  // --- state ---
   let drawing = false;
   let prevX = 0, prevY = 0;
   let lastEmit = 0;
@@ -39,7 +37,11 @@
   const clearBtn = document.getElementById("clearBtn");
   const chatBox = document.getElementById("chatBox");
   const sendBtn = document.getElementById("sendBtn");
+  const startBtn = document.getElementById("startBtn");
 
+startBtn.addEventListener("click", () => {
+  socket.emit("startGame", roomId);
+});
   // --- clear board ---
   socket.on("clearBoard", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -100,6 +102,20 @@
     chatBox.scrollTop = chatBox.scrollHeight;
   });
 
+  socket.on("lobbyState", ({ host, started }) => {
+  if (started) {
+    startBtn.style.display = "none";
+    return;
+  }
+
+  if (socket.id && socket.id === host) {
+    startBtn.style.display = "block";
+    startBtn.disabled = false;
+  } else {
+    startBtn.style.display = "none";
+  }
+});
+
   socket.on("systemMessage", (msg) => {
     const el = document.createElement("div");
     el.style.color = "yellow";
@@ -109,6 +125,10 @@
   });
 
   socket.on("gameState", ({ drawer }) => {
+    if (drawer) 
+    {
+      startBtn.style.display = "none";
+    }
     const playersDiv = document.getElementById("players");
 
     // remove old label
