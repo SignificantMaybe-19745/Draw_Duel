@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="sidebar">
+
+  <h3>Players</h3>
+  <div id="players"></div>
+
+  <button id="clearBtn">Clear Board</button>
+
+  <div id="timer">60</div>
+  <div id="chatBox"></div>
+
+<input id="chatInput" placeholder="Type guess..." />
+<button id="sendBtn">Send</button>
+</div>
+    <canvas id="board"></canvas>
+    <!-- socket.io client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
