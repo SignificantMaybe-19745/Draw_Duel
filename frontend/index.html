@@ -1,57 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Whiteboard Game</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Whiteboard Game</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-  <!-- Top Bar -->
-  <header id="topbar">
-    <div class="brand">⚔️ DrawDuel ⚔️</div>
-    <div id="timer">60</div>
-    <button id="startBtn">Start Game</button>
-  </header>
-
-  <!-- Main Layout -->
-  <div id="app">
-
-    <!-- Left Panel -->
-    <aside id="leftPanel">
-      <div class="card">
-        <h3>Players</h3>
-        <div id="players"></div>
-      </div>
-      <div class="card">
-        <h3>Leaderboard</h3>
-        <div id="leaderboard"></div>
-       </div>
-      <button id="clearBtn">Clear Board</button>
-    </aside>
-
-    <!-- Center Canvas -->
-    <main id="centerPanel">
-      <canvas id="board"></canvas>
-    </main>
-
-    <!-- Right Panel -->
-    <aside id="rightPanel">
-      <div class="card">
-        <h3>Chat</h3>
-        <div id="chatBox"></div>
-      </div>
-
-      <div id="chatControls">
-        <input id="chatInput" placeholder="Type guess..." />
-        <button id="sendBtn">Send</button>
-      </div>
-    </aside>
-
+<!-- Top Bar -->
+<header id="topbar">
+<div class="brand">⚔️ DrawDuel ⚔️</div>
+<div id="timer">60</div>
+<button id="startBtn">Start Game</button>
+</header>
+<!-- Main Layout -->
+<div id="app">
+<!-- Left Panel -->
+<aside id="leftPanel">
+<div class="card">
+<h3>Players</h3>
+<div id="players"></div>
+</div>
+<div class="card">
+<h3>Leaderboard</h3>
+<div id="leaderboard"></div>
+</div>
+<button id="clearBtn">Clear Board</button>
+</aside>
+<!-- Center Canvas -->
+<main id="centerPanel">
+<canvas id="board"></canvas>
+</main>
+<!-- Right Panel -->
+<!-- Right Panel -->
+<aside id="rightPanel">
+  <div class="card">
+    <h3>Chat</h3>
+    <div id="chatBox"></div>
+    <div id="chatControls">
+      <input id="chatInput" placeholder="Type guess..." />
+    </div>
   </div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+</aside>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
