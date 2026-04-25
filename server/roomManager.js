@@ -12,6 +12,7 @@ function getRoom(roomId) {
       timeLeft: 60,
       started: false,
       state: "waiting",
+      correctGuessers: [],
       host: null
     };
   }

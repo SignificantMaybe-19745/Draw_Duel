@@ -16,7 +16,27 @@ function endRound(roomId) {
   io.to(roomId).emit("systemMessage", `⏰ Time's up! Word was: ${room.word}`);
 
   let count = 3;
+  if (room.drawer && room.correctGuessers.length > 0) {
 
+  let totalGuesserPoints = 0;
+
+  room.correctGuessers.forEach((id) => {
+    totalGuesserPoints += room.scores[id] || 0;
+  });
+
+  const avg = Math.floor(totalGuesserPoints / room.correctGuessers.length);
+  const drawerBonus = Math.floor(avg * 0.4);
+
+  if (!room.scores[room.drawer]) room.scores[room.drawer] = 0;
+  room.scores[room.drawer] += drawerBonus;
+
+  io.to(roomId).emit(
+    "systemMessage",
+    `🎨 Drawer earned +${drawerBonus}`
+  );
+
+  io.to(roomId).emit("scoreUpdate", room.scores);
+}
   const countdown = setInterval(() => {
     io.to(roomId).emit("systemMessage", `Next round in ${count}...`);
     count--;
@@ -47,7 +67,7 @@ function endRound(roomId) {
 
   function startRound(roomId) {
   const room = getRoom(roomId);
-
+  room.correctGuessers = [];
   room.strokes = [];
   room.timeLeft = 60;
   room.word = getRandomWord();
@@ -160,23 +180,55 @@ function endRound(roomId) {
 });
 
   socket.on("chatMessage", ({ roomId, message }) => {
-
   const room = getRoom(roomId);
 
-  console.log("CHAT:", message);
+  const guess = message.toLowerCase().trim();
+  const answer = room.word.toLowerCase();
+
+  if (guess === answer) {
+
+  // prevent duplicate scoring
+  if (room.correctGuessers.includes(socket.id)) return;
+
+  const playerCount = room.players.length;
+  const guessOrder = room.correctGuessers.length;
+
+  // base by lobby size
+  let base = 80;
+  if (playerCount === 3) base = 100;
+  else if (playerCount === 4) base = 120;
+  else if (playerCount >= 5) base = 150;
+
+  // order bonus
+  let orderBonus = 20;
+  if (guessOrder === 0) orderBonus = 100;
+  else if (guessOrder === 1) orderBonus = 70;
+  else if (guessOrder === 2) orderBonus = 40;
+
+  // speed bonus
+  const speedBonus = room.timeLeft * 2;
+
+  const total = base + orderBonus + speedBonus;
+
+  if (!room.scores[socket.id]) room.scores[socket.id] = 0;
+  room.scores[socket.id] += total;
+
+  room.correctGuessers.push(socket.id);
+
+  io.to(roomId).emit(
+    "systemMessage",
+    `${socket.id} guessed correctly! +${total} 🎉`
+  );
+
+  io.to(roomId).emit("scoreUpdate", room.scores);
+
+  return;
+}
 
   io.to(roomId).emit("chatMessage", {
     sender: socket.id,
     message
   });
-
-  if (message.toLowerCase() === room.word) {
-
-    io.to(roomId).emit("systemMessage", `${socket.id} guessed correctly! 🎉`);
-
-  }
-  // check guess
-
 });
 }
 

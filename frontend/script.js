@@ -152,6 +152,21 @@ startBtn.addEventListener("click", () => {
     playersDiv.prepend(label);
   });
 
+  socket.on("scoreUpdate", (scores) => {
+  const board = document.getElementById("leaderboard");
+
+  board.innerHTML = "";
+
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+
+  sorted.forEach(([id, score], index) => {
+    const row = document.createElement("div");
+    row.textContent = `${index + 1}. Player ${index + 1} - ${score}`;
+    board.appendChild(row);
+  });
+});
+
+
   socket.on("timer", (time) => {
   document.getElementById("timer").textContent = time;
 });

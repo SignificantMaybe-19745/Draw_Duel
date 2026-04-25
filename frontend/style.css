@@ -172,3 +172,11 @@ html, body {
     height: 250px;
   }
 }
+
+#leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: white;
+  font-size: 15px;
+}
