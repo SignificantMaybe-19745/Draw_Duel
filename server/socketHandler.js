@@ -108,7 +108,7 @@ function endRound(roomId) {
   const room = addPlayer(roomId, socket.id);
 
   io.to(roomId).emit("playersUpdate", room.players);
-
+  io.to(roomId).emit("scoreUpdate", room.scores);
   // Always update lobby info
   io.to(roomId).emit("lobbyState", {
     host: room.host,

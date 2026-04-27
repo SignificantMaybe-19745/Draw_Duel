@@ -26,7 +26,15 @@ function addPlayer(roomId, socketId) {
     room.host = socketId;
   }
 
-  room.players.push(socketId);
+  // prevent duplicate joins
+  if (!room.players.includes(socketId)) {
+    room.players.push(socketId);
+  }
+
+  // initialize score for new player
+  if (room.scores[socketId] === undefined) {
+    room.scores[socketId] = 0;
+  }
 
   return room;
 }
