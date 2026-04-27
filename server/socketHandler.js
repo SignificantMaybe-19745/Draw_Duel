@@ -69,7 +69,7 @@ function endRound(roomId) {
   const room = getRoom(roomId);
   room.correctGuessers = [];
   room.strokes = [];
-  room.timeLeft = 60;
+  room.timeLeft = 120;
   room.word = getRandomWord();
 
   io.to(roomId).emit("clearBoard");

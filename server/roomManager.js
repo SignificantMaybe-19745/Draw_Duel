@@ -9,7 +9,7 @@ function getRoom(roomId) {
       drawer: null,
       word: "apple",
       round: 1,
-      timeLeft: 60,
+      timeLeft: 120,
       started: false,
       state: "waiting",
       correctGuessers: [],
