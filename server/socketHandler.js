@@ -157,19 +157,39 @@ function endRound(roomId) {
   });
 
   socket.on("disconnect", () => {
-
-  for (const roomId in require("./roomManager").rooms) {
-
+  for (const roomId in rooms) {
     const room = getRoom(roomId);
 
     room.players = room.players.filter(id => id !== socket.id);
 
-    // if drawer left → assign new one
+    // remove score entry
+    delete room.scores[socket.id];
+
+    // if host left, assign new host
+    if (room.host === socket.id) {
+      room.host = room.players[0] || null;
+    }
+
+    // if drawer left, assign next available player
     if (room.drawer === socket.id) {
       room.drawer = room.players[0] || null;
     }
 
+    // delete room if empty
+    if (room.players.length === 0) {
+      delete rooms[roomId];
+      console.log(`🧹 Deleted empty room: ${roomId}`);
+      continue;
+    }
+
     io.to(roomId).emit("playersUpdate", room.players);
+    io.to(roomId).emit("scoreUpdate", room.scores);
+
+    io.to(roomId).emit("lobbyState", {
+      host: room.host,
+      players: room.players,
+      started: room.started
+    });
 
     io.to(roomId).emit("gameState", {
       drawer: room.drawer
