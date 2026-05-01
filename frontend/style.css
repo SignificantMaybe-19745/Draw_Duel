@@ -332,3 +332,9 @@ html, body {
     grid-column: span 2;
   }
 }
+
+#statusBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

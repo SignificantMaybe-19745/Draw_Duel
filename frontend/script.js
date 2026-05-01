@@ -144,23 +144,7 @@
     ctx.lineWidth = brushSize;
   });
 
-  socket.on("playersUpdate", (players) => {
-    const playersDiv = document.getElementById("players");
-    playersDiv.innerHTML = "";
-    players.forEach((p) => {
-      const id = typeof p === "string" ? p : p.id;
-      const row = document.createElement("div");
-      row.className = "player-row";
-      const dot = document.createElement("div");
-      dot.className = "player-dot";
-      dot.style.background = getPlayerColor(id);
-      const name = document.createElement("span");
-      name.textContent = getPlayerLabel(id);
-      row.appendChild(dot);
-      row.appendChild(name);
-      playersDiv.appendChild(row);
-    });
-  });
+  socket.on("playersUpdate", () => {});
 
   socket.on("chatMessage", ({ sender, message }) => {
     appendChat({
@@ -188,8 +172,8 @@
   socket.on("gameState", ({ drawer }) => {
     if (drawer) startBtn.style.display = "none";
 
-    const playersDiv = document.getElementById("players");
-    playersDiv.querySelectorAll(".roleLabel").forEach(el => el.remove());
+    const statusBox = document.getElementById("statusBox");
+    statusBox.innerHTML = "";
 
     const label = document.createElement("div");
     label.className = "roleLabel";
@@ -209,7 +193,7 @@
       label.style.color = "#66bb6a";
     }
 
-    playersDiv.prepend(label);
+    statusBox.appendChild(label);
   });
 
   socket.on("scoreUpdate", (scores) => {
