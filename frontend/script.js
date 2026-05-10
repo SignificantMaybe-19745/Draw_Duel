@@ -19,7 +19,8 @@
 
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get("room") || "default";
-
+  const overlay = document.getElementById("wordOverlay");
+const wordChoicesDiv = document.getElementById("wordChoices");
   // --- Canvas sizing ---
   function resizeCanvas() {
     const tempCanvas = document.createElement("canvas");
@@ -153,7 +154,23 @@
       text: message,
     });
   });
+  socket.on("chooseWord", (choices) => {
+  overlay.classList.remove("hidden");
+  wordChoicesDiv.innerHTML = "";
 
+  choices.forEach((word) => {
+    const btn = document.createElement("button");
+    btn.className = "wordBtn";
+    btn.textContent = word;
+
+    btn.onclick = () => {
+      socket.emit("selectWord", { roomId, word });
+      overlay.classList.add("hidden");
+    };
+
+    wordChoicesDiv.appendChild(btn);
+  });
+});
   socket.on("systemMessage", (msg) => {
     const isCorrect = msg.toLowerCase().includes("guessed correctly") || msg.includes("✓");
     appendChat({ text: msg, isSystem: true, isCorrect });
@@ -170,6 +187,7 @@
   });
 
   socket.on("gameState", ({ drawer }) => {
+    overlay.classList.add("hidden");
     if (drawer) startBtn.style.display = "none";
 
     const statusBox = document.getElementById("statusBox");

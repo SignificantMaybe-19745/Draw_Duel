@@ -338,3 +338,44 @@ html, body {
   flex-direction: column;
   gap: 8px;
 }
+
+#wordOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 30, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#wordBox {
+  background: #2a2f4a;
+  padding: 20px 30px;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+}
+
+#wordChoices {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.wordBtn {
+  padding: 10px 16px;
+  background: #ffd54a;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.wordBtn:hover {
+  background: #ffca28;
+}

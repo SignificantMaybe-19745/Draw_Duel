@@ -4,7 +4,8 @@ const {
   addPlayer,
   removePlayer,
   getRandomWord,
-  nextDrawer
+  nextDrawer,
+  getWordChoices,
 } = require("./roomManager");
 
 
@@ -70,7 +71,8 @@ function endRound(roomId) {
   room.correctGuessers = [];
   room.strokes = [];
   room.timeLeft = 120;
-  room.word = getRandomWord();
+  room.word = null; // not decided yet
+  const choices = getWordChoices();
 
   io.to(roomId).emit("clearBoard");
 
@@ -80,24 +82,14 @@ function endRound(roomId) {
 
     if (!target) return;
 
-    target.emit("gameState", {
-      drawer: room.drawer,
-      word: playerId === room.drawer ? room.word : null
-    });
+    if (playerId === room.drawer) {
+  target.emit("chooseWord", choices);
+} else {
+  target.emit("systemMessage", "⏳ Drawer is choosing a word...");
+}
   });
 
-  const timer = setInterval(() => {
-    room.timeLeft--;
-
-    io.to(roomId).emit("timer", room.timeLeft);
-
-    if (room.timeLeft <= 0) 
-      {
-        clearInterval(timer);
-        endRound(roomId);
-      }
-
-    }, 1000);
+  
   }
 
     console.log("🔥 SOCKET CONNECTED", socket.id);
@@ -198,7 +190,36 @@ function endRound(roomId) {
 
   console.log("Player disconnected:", socket.id);
 });
+socket.on("selectWord", ({ roomId, word }) => {
+  const room = getRoom(roomId);
 
+  if (socket.id !== room.drawer) return;
+
+  room.word = word;
+
+  // send gameState now
+  room.players.forEach((playerId) => {
+    const target = io.sockets.sockets.get(playerId);
+    if (!target) return;
+
+    target.emit("gameState", {
+      drawer: room.drawer,
+      word: playerId === room.drawer ? word : null
+    });
+  });
+
+  // start timer NOW
+  const timer = setInterval(() => {
+    room.timeLeft--;
+
+    io.to(roomId).emit("timer", room.timeLeft);
+
+    if (room.timeLeft <= 0) {
+      clearInterval(timer);
+      endRound(roomId);
+    }
+  }, 1000);
+});
   socket.on("chatMessage", ({ roomId, message }) => {
   const room = getRoom(roomId);
 

@@ -51,7 +51,10 @@ const words = ["apple", "dog", "car", "house", "tree"];
 function getRandomWord() {
   return words[Math.floor(Math.random() * words.length)];
 }
-
+function getWordChoices() {
+  const shuffled = [...words].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+}
 function nextDrawer(room) {
   if (room.players.length === 0) {
     room.drawer = null;
@@ -70,5 +73,6 @@ module.exports = {
   addPlayer,
   removePlayer,
   getRandomWord,
-  nextDrawer
+  nextDrawer,
+  getWordChoices,
 };
