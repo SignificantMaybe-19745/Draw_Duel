@@ -13,6 +13,7 @@ const {
 function registerSocketHandlers(io, socket) {
 
 function endRound(roomId) {
+  console.log("END ROUND CALLED");
   const room = getRoom(roomId);
 
   io.to(roomId).emit("systemMessage", `⏰ Time's up! Word was: ${room.word}`);
@@ -44,17 +45,51 @@ function endRound(roomId) {
     count--;
 
     if (count < 0) {
-      clearInterval(countdown);
+  clearInterval(countdown);
 
-      nextDrawer(room);
-      room.round++;
+  room.turnsPlayed++;
 
-      startRound(roomId);
-    }
+  const totalTurns = room.players.length * room.maxRounds;
+
+  console.log("TURNS:", room.turnsPlayed);
+
+  if (room.turnsPlayed >= totalTurns) {
+    console.log("GAME OVER NOW");
+    endGame(roomId);
+    return;
+  }
+
+  nextDrawer(room);
+
+  room.round =
+    Math.floor(room.turnsPlayed / room.players.length) + 1;
+
+  startRound(roomId);
+}
   }, 1000);
 }
   
+  function endGame(roomId) {
+  const room = getRoom(roomId);
 
+  room.started = false;
+  room.state = "waiting";
+
+  const sorted = Object.entries(room.scores)
+    .sort((a, b) => b[1] - a[1]);
+
+  const winnerId = sorted[0]?.[0];
+
+  io.to(roomId).emit("gameOver", {
+    scores: room.scores,
+    winner: winnerId
+  });
+
+  io.to(roomId).emit(
+    "systemMessage",
+    `🏆 ${winnerId} wins the game!`
+  );
+}
   socket.on("startGame", (roomId) => {
   const room = getRoom(roomId);
 
@@ -64,6 +99,13 @@ function endRound(roomId) {
   room.started = true;
   room.state = "playing";
   room.drawer = room.players[0];
+  room.turnsPlayed = 0;
+  room.round = 1;
+  room.scores = {};
+
+  room.players.forEach(id => {
+  room.scores[id] = 0;
+});
   startRound(roomId);
   });
 
@@ -210,7 +252,8 @@ socket.on("selectWord", ({ roomId, word }) => {
   });
 
   // start timer NOW
-  const timer = setInterval(() => {
+  clearInterval(room.timer);
+  room.timer = setInterval(() => {
     room.timeLeft--;
 
     io.to(roomId).emit("timer", room.timeLeft);
@@ -229,7 +272,7 @@ socket.on("selectWord", ({ roomId, word }) => {
   }
 });
     if (room.timeLeft <= 0) {
-      clearInterval(timer);
+      clearInterval(room.timer);
       endRound(roomId);
     }
   }, 1000);

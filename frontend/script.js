@@ -20,8 +20,11 @@
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get("room") || "default";
   const overlay = document.getElementById("wordOverlay");
-const wordChoicesDiv = document.getElementById("wordChoices");
-const hintBox = document.getElementById("hintBox");
+  const wordChoicesDiv = document.getElementById("wordChoices");
+  const hintBox = document.getElementById("hintBox");
+  const gameOverOverlay = document.getElementById("gameOverOverlay");
+  const finalScores = document.getElementById("finalScores");
+  const restartBtn = document.getElementById("restartBtn");
   // --- Canvas sizing ---
   function resizeCanvas() {
     const tempCanvas = document.createElement("canvas");
@@ -191,6 +194,30 @@ const hintBox = document.getElementById("hintBox");
     }
   });
 
+  socket.on("gameOver", ({ scores, winner }) => {
+  gameOverOverlay.classList.remove("hidden");
+
+  finalScores.innerHTML = "";
+
+  const sorted = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1]);
+
+  sorted.forEach(([id, score], index) => {
+    const row = document.createElement("div");
+    row.className = "finalRow";
+
+    row.innerHTML = `
+      <span>
+        ${index === 0 ? "👑" : "#"+(index+1)}
+        ${getPlayerLabel(id)}
+      </span>
+
+      <span>${score}</span>
+    `;
+
+    finalScores.appendChild(row);
+  });
+});
   socket.on("gameState", ({ drawer }) => {
     overlay.classList.add("hidden");
     if (drawer) startBtn.style.display = "none";
@@ -284,6 +311,11 @@ const hintBox = document.getElementById("hintBox");
     prevX = x;
     prevY = y;
   });
+
+  restartBtn.addEventListener("click", () => {
+  gameOverOverlay.classList.add("hidden");
+  socket.emit("startGame", roomId);
+});
 
   ["mouseup", "mouseleave"].forEach((ev) =>
     canvas.addEventListener(ev, () => { drawing = false; })
