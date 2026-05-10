@@ -3,7 +3,9 @@
     console.error("Window error:", msg, "at", src + ":" + line + ":" + col, err);
   };
 
-  const socket = io("http://localhost:3000");
+  const socket = io("http://localhost:3000", {
+  autoConnect: false
+});
 
   const canvas = document.getElementById("board");
   if (!canvas) { console.error("Canvas #board not found!"); return; }
@@ -16,9 +18,12 @@
   let prevX = 0, prevY = 0;
   let lastEmit = 0;
   let isDrawer = false;
-
-  const params = new URLSearchParams(window.location.search);
-  const roomId = params.get("room") || "default";
+  const joinScreen = document.getElementById("joinScreen");
+  const joinBtn = document.getElementById("joinBtn");
+  const nameInput = document.getElementById("nameInput");
+  const roomInput = document.getElementById("roomInput");
+  let roomId = "";
+  let playerName = "";
   const overlay = document.getElementById("wordOverlay");
   const wordChoicesDiv = document.getElementById("wordChoices");
   const hintBox = document.getElementById("hintBox");
@@ -115,10 +120,28 @@
   clearBtn.addEventListener("click", () => socket.emit("clearBoard", roomId));
 
   // --- Socket events ---
-  socket.on("connect", () => {
-    console.log("Connected:", socket.id);
-    socket.emit("joinRoom", roomId);
+  joinBtn.addEventListener("click", () => {
+  const name = nameInput.value.trim();
+  const room = roomInput.value.trim();
+
+  if (!name || !room) return;
+
+  playerName = name;
+  roomId = room;
+
+  socket.connect();
+});
+
+socket.on("connect", () => {
+  console.log("Connected:", socket.id);
+
+  socket.emit("joinRoom", {
+    roomId,
+    name: playerName
   });
+
+  joinScreen.style.display = "none";
+});
 
   socket.on("clearBoard", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
