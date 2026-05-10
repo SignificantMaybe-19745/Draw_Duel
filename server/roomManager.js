@@ -55,6 +55,32 @@ function getWordChoices() {
   const shuffled = [...words].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, 3);
 }
+function getWordHint(word, timeLeft) {
+  if (!word) return "";
+
+  const revealCount = Math.floor((120 - timeLeft) / 30);
+
+  const indices = [];
+
+  while (indices.length < revealCount) {
+    const rand = Math.floor(Math.random() * word.length);
+
+    if (
+      word[rand] !== " " &&
+      !indices.includes(rand)
+    ) {
+      indices.push(rand);
+    }
+  }
+
+  return word
+    .split("")
+    .map((char, index) => {
+      if (char === " ") return " ";
+      return indices.includes(index) ? char : "_";
+    })
+    .join(" ");
+}
 function nextDrawer(room) {
   if (room.players.length === 0) {
     room.drawer = null;
@@ -75,4 +101,5 @@ module.exports = {
   getRandomWord,
   nextDrawer,
   getWordChoices,
+  getWordHint,
 };

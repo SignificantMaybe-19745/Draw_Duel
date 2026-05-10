@@ -21,6 +21,7 @@
   const roomId = params.get("room") || "default";
   const overlay = document.getElementById("wordOverlay");
 const wordChoicesDiv = document.getElementById("wordChoices");
+const hintBox = document.getElementById("hintBox");
   // --- Canvas sizing ---
   function resizeCanvas() {
     const tempCanvas = document.createElement("canvas");
@@ -170,6 +171,10 @@ const wordChoicesDiv = document.getElementById("wordChoices");
 
     wordChoicesDiv.appendChild(btn);
   });
+});
+
+  socket.on("wordHint", (hint) => {
+  hintBox.textContent = hint;
 });
   socket.on("systemMessage", (msg) => {
     const isCorrect = msg.toLowerCase().includes("guessed correctly") || msg.includes("✓");

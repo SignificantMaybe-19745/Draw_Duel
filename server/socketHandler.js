@@ -6,6 +6,7 @@ const {
   getRandomWord,
   nextDrawer,
   getWordChoices,
+  getWordHint,
 } = require("./roomManager");
 
 
@@ -213,7 +214,20 @@ socket.on("selectWord", ({ roomId, word }) => {
     room.timeLeft--;
 
     io.to(roomId).emit("timer", room.timeLeft);
+    room.players.forEach((playerId) => {
+  const target = io.sockets.sockets.get(playerId);
 
+  if (!target) return;
+
+  if (playerId === room.drawer) {
+    target.emit("wordHint", room.word);
+  } else {
+    target.emit(
+      "wordHint",
+      getWordHint(room.word, room.timeLeft)
+    );
+  }
+});
     if (room.timeLeft <= 0) {
       clearInterval(timer);
       endRound(roomId);
