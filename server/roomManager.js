@@ -56,7 +56,7 @@ function removePlayer(socketId) {
   }
 }
 
-const words = ["apple", "dog", "car", "house", "tree"];
+const words = require("./words");
 
 function getRandomWord() {
   return words[Math.floor(Math.random() * words.length)];

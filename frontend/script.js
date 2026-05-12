@@ -28,6 +28,10 @@
   const overlay = document.getElementById("wordOverlay");
   const wordChoicesDiv = document.getElementById("wordChoices");
   const hintBox = document.getElementById("hintBox");
+
+  const timerBox = document.getElementById("timer");
+  hintBox.classList.add("hiddenUI");
+  timerBox.classList.add("hiddenUI");
   const gameOverOverlay = document.getElementById("gameOverOverlay");
   const finalScores = document.getElementById("finalScores");
   const restartBtn = document.getElementById("restartBtn");
@@ -191,6 +195,8 @@ socket.on("connect", () => {
     });
   });
   socket.on("chooseWord", (choices) => {
+    hintBox.classList.add("hiddenUI");
+timerBox.classList.add("hiddenUI");
   overlay.classList.remove("hidden");
   wordChoicesDiv.innerHTML = "";
 
@@ -209,6 +215,9 @@ socket.on("connect", () => {
 });
 
   socket.on("wordHint", (hint) => {
+  hintBox.classList.remove("hiddenUI");
+  timerBox.classList.remove("hiddenUI");
+
   hintBox.textContent = hint;
 });
   socket.on("systemMessage", (msg) => {
@@ -228,7 +237,8 @@ socket.on("connect", () => {
 
   socket.on("gameOver", ({ scores, winner }) => {
   gameOverOverlay.classList.remove("hidden");
-
+  hintBox.classList.add("hiddenUI");
+timerBox.classList.add("hiddenUI");
   finalScores.innerHTML = "";
 
   const sorted = Object.entries(scores)
