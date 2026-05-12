@@ -486,3 +486,62 @@ html, body {
 .hiddenUI {
   visibility: hidden;
 }
+
+#canvasWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 10px;
+}
+
+#board {
+  flex: 1;
+  min-height: 0;
+}
+
+#toolbar {
+  background: #21253a;
+  border-radius: 10px;
+  padding: 10px 14px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#colors,
+#sizes {
+  display: flex;
+  gap: 10px;
+}
+
+.colorBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.colorBtn:hover,
+.colorBtn.active {
+  transform: scale(1.15);
+  border-color: white;
+}
+
+.sizeBtn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #2e3457;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.sizeBtn.active {
+  background: #ffd54a;
+  color: black;
+}

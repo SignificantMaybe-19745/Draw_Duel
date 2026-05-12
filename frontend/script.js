@@ -12,12 +12,13 @@
 
   const ctx = canvas.getContext("2d");
 
-  let currentColor = "#111111";
-  let brushSize = 3;
   let drawing = false;
   let prevX = 0, prevY = 0;
   let lastEmit = 0;
   let isDrawer = false;
+  let isDrawing = false;
+  let currentColor = "#000000";
+  let currentSize = 3;
   let currentPlayers = [];
   const joinScreen = document.getElementById("joinScreen");
   const joinBtn = document.getElementById("joinBtn");
@@ -28,7 +29,8 @@
   const overlay = document.getElementById("wordOverlay");
   const wordChoicesDiv = document.getElementById("wordChoices");
   const hintBox = document.getElementById("hintBox");
-
+  const colorButtons = document.querySelectorAll(".colorBtn");
+const sizeButtons = document.querySelectorAll(".sizeBtn");
   const timerBox = document.getElementById("timer");
   hintBox.classList.add("hiddenUI");
   timerBox.classList.add("hiddenUI");
@@ -47,7 +49,7 @@
     canvas.height = rect.height;
 
     ctx.drawImage(tempCanvas, 0, 0);
-    ctx.lineWidth = brushSize;
+    ctx.lineWidth = currentSize;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = currentColor;
@@ -70,6 +72,30 @@
   const chatBox = document.getElementById("chatBox");
   const startBtn = document.getElementById("startBtn");
   const chatInput = document.getElementById("chatInput");
+
+  colorButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    colorButtons.forEach((b) =>
+      b.classList.remove("active")
+    );
+
+    btn.classList.add("active");
+
+    currentColor = btn.dataset.color;
+  });
+});
+
+sizeButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    sizeButtons.forEach((b) =>
+      b.classList.remove("active")
+    );
+
+    btn.classList.add("active");
+
+    currentSize = Number(btn.dataset.size);
+  });
+});
 
   // --- Player color/label helpers ---
   const PLAYER_COLORS = ["#42a5f5", "#ef5350", "#66bb6a", "#ffd54a", "#ab47bc", "#ff7043"];
@@ -163,8 +189,6 @@ socket.on("connect", () => {
       ctx.lineWidth = s.size || 3;
       ctx.stroke();
     });
-    ctx.strokeStyle = currentColor;
-    ctx.lineWidth = brushSize;
   });
 
   socket.on("draw", (data) => {
@@ -175,8 +199,6 @@ socket.on("connect", () => {
     ctx.strokeStyle = data.color || "#111";
     ctx.lineWidth = data.size || 3;
     ctx.stroke();
-    ctx.strokeStyle = currentColor;
-    ctx.lineWidth = brushSize;
   });
 
   socket.on("playersUpdate", (players) => {
@@ -344,7 +366,7 @@ timerBox.classList.add("hiddenUI");
     ctx.moveTo(prevX, prevY);
     ctx.lineTo(x, y);
     ctx.strokeStyle = currentColor;
-    ctx.lineWidth = brushSize;
+    ctx.lineWidth = currentSize;
     ctx.stroke();
 
     socket.emit("draw", {
@@ -352,7 +374,7 @@ timerBox.classList.add("hiddenUI");
       x1: prevX, y1: prevY,
       x2: x, y2: y,
       color: currentColor,
-      size: brushSize,
+      size: currentSize,
     });
 
     prevX = x;
