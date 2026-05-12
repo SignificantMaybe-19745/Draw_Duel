@@ -9,7 +9,10 @@ const {
   getWordHint,
 } = require("./roomManager");
 
-
+function getPlayerName(room, socketId) {
+  const player = room.players.find(p => p.id === socketId);
+  return player ? player.name : "Unknown";
+}
 function registerSocketHandlers(io, socket) {
 
 function endRound(roomId) {
@@ -87,7 +90,7 @@ function endRound(roomId) {
 
   io.to(roomId).emit(
     "systemMessage",
-    `🏆 ${winnerId} wins the game!`
+    `🏆 ${getPlayerName(room, winnerId)} wins the game!`
   );
 }
   socket.on("startGame", (roomId) => {
@@ -323,7 +326,7 @@ socket.on("selectWord", ({ roomId, word }) => {
 
   io.to(roomId).emit(
     "systemMessage",
-    `${socket.id} guessed correctly! +${total} 🎉`
+    `${getPlayerName(room, socket.id)} guessed correctly! +${total} 🎉`
   );
 
   io.to(roomId).emit("scoreUpdate", room.scores);
