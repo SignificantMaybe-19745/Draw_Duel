@@ -214,6 +214,11 @@ timerBox.classList.add("hiddenUI");
   });
 });
 
+  socket.on("roundTransition", () => {
+  hintBox.classList.add("hiddenUI");
+  timerBox.classList.add("hiddenUI");
+});
+
   socket.on("wordHint", (hint) => {
   hintBox.classList.remove("hiddenUI");
   timerBox.classList.remove("hiddenUI");

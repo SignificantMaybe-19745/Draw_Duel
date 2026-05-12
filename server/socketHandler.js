@@ -17,6 +17,7 @@ function registerSocketHandlers(io, socket) {
 
 function endRound(roomId) {
   console.log("END ROUND CALLED");
+  io.to(roomId).emit("roundTransition");
   const room = getRoom(roomId);
 
   io.to(roomId).emit("systemMessage", `⏰ Time's up! Word was: ${room.word}`);
@@ -40,7 +41,6 @@ function endRound(roomId) {
     "systemMessage",
     `🎨 Drawer earned +${drawerBonus}`
   );
-
   io.to(roomId).emit("scoreUpdate", room.scores);
 }
   const countdown = setInterval(() => {
@@ -324,14 +324,29 @@ socket.on("selectWord", ({ roomId, word }) => {
 
   room.correctGuessers.push(socket.id);
 
+io.to(roomId).emit(
+  "systemMessage",
+  `${getPlayerName(room, socket.id)} guessed correctly! +${total} 🎉`
+);
+
+io.to(roomId).emit("scoreUpdate", room.scores);
+
+// everyone guessed correctly
+const totalGuessers = room.players.length - 1;
+
+if (room.correctGuessers.length >= totalGuessers) {
+  clearInterval(room.timer);
+
   io.to(roomId).emit(
     "systemMessage",
-    `${getPlayerName(room, socket.id)} guessed correctly! +${total} 🎉`
+    "🎉 Everyone guessed correctly!"
   );
 
-  io.to(roomId).emit("scoreUpdate", room.scores);
-
+  endRound(roomId);
   return;
+}
+
+return;
 }
 
   io.to(roomId).emit("chatMessage", {
