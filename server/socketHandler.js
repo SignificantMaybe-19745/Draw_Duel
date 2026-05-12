@@ -73,7 +73,10 @@ function endRound(roomId) {
 }
   
   function endGame(roomId) {
-  const room = getRoom(roomId);
+    const room = getRoom(roomId);
+
+  clearInterval(room.timer);
+  room.timer = null;
 
   room.started = false;
   room.state = "waiting";
@@ -97,6 +100,7 @@ function endRound(roomId) {
   const room = getRoom(roomId);
 
   if (socket.id !== room.host) return;
+  if (room.started) return;
   if (room.players.length < 2) return;
 
   room.started = true;
@@ -113,7 +117,9 @@ function endRound(roomId) {
   });
 
   function startRound(roomId) {
-  const room = getRoom(roomId);
+   const room = getRoom(roomId);
+  clearInterval(room.timer);
+  room.timer = null;
   room.correctGuessers = [];
   room.strokes = [];
   room.timeLeft = 120;
@@ -216,8 +222,21 @@ function endRound(roomId) {
 
     // if drawer left, assign next available player
     if (room.drawer === socket.id) {
-      room.drawer = room.players[0]?.id || null;
-    }
+  clearInterval(room.timer);
+
+  io.to(roomId).emit(
+    "systemMessage",
+    "⚠️ Drawer disconnected! Skipping round..."
+  );
+
+  room.drawer = room.players[0]?.id || null;
+
+  if (room.started && room.players.length >= 2) {
+    setTimeout(() => {
+      startRound(roomId);
+    }, 2000);
+  }
+}
 
     // delete room if empty
     if (room.players.length === 0) {
