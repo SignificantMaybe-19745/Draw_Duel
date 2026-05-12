@@ -98,13 +98,13 @@ function endRound(roomId) {
 
   room.started = true;
   room.state = "playing";
-  room.drawer = room.players[0];
+  room.drawer = room.players[0]?.id;
   room.turnsPlayed = 0;
   room.round = 1;
   room.scores = {};
 
-  room.players.forEach(id => {
-  room.scores[id] = 0;
+  room.players.forEach(player => {
+  room.scores[player.id] = 0;
 });
   startRound(roomId);
   });
@@ -120,7 +120,8 @@ function endRound(roomId) {
   io.to(roomId).emit("clearBoard");
 
   // send state separately
-  room.players.forEach((playerId) => {
+  room.players.forEach((player) => {
+     const playerId = player.id;
     const target = io.sockets.sockets.get(playerId);
 
     if (!target) return;
@@ -137,10 +138,10 @@ function endRound(roomId) {
 
     console.log("🔥 SOCKET CONNECTED", socket.id);
 
-   socket.on("joinRoom", (roomId) => {
+   socket.on("joinRoom", ({ roomId, name }) => {
   socket.join(roomId);
 
-  const room = addPlayer(roomId, socket.id);
+  const room = addPlayer(roomId, socket.id, name);
 
   io.to(roomId).emit("playersUpdate", room.players);
   io.to(roomId).emit("scoreUpdate", room.scores);
@@ -153,15 +154,18 @@ function endRound(roomId) {
 
   // If game has already started, send proper gameState per player
   if (room.started) {
-    room.players.forEach((playerId) => {
-      const target = io.sockets.sockets.get(playerId);
-      if (!target) return;
+    room.players.forEach((player) => {
+  const playerId = player.id;
 
-      target.emit("gameState", {
-        drawer: room.drawer,
-        word: playerId === room.drawer ? room.word : null
-      });
-    });
+  const target = io.sockets.sockets.get(playerId);
+
+  if (!target) return;
+
+  target.emit("gameState", {
+    drawer: room.drawer,
+    word: playerId === room.drawer ? room.word : null
+  });
+});
   }
 
   socket.emit("strokeHistory", room.strokes);
@@ -195,19 +199,21 @@ function endRound(roomId) {
   for (const roomId in rooms) {
     const room = getRoom(roomId);
 
-    room.players = room.players.filter(id => id !== socket.id);
+    room.players = room.players.filter(
+  p => p.id !== socket.id
+);
 
     // remove score entry
     delete room.scores[socket.id];
 
     // if host left, assign new host
     if (room.host === socket.id) {
-      room.host = room.players[0] || null;
+      room.host = room.players[0]?.id || null;
     }
 
     // if drawer left, assign next available player
     if (room.drawer === socket.id) {
-      room.drawer = room.players[0] || null;
+      room.drawer = room.players[0]?.id || null;
     }
 
     // delete room if empty
@@ -241,7 +247,8 @@ socket.on("selectWord", ({ roomId, word }) => {
   room.word = word;
 
   // send gameState now
-  room.players.forEach((playerId) => {
+  room.players.forEach((player) => {
+    const playerId = player.id;
     const target = io.sockets.sockets.get(playerId);
     if (!target) return;
 
@@ -257,8 +264,9 @@ socket.on("selectWord", ({ roomId, word }) => {
     room.timeLeft--;
 
     io.to(roomId).emit("timer", room.timeLeft);
-    room.players.forEach((playerId) => {
-  const target = io.sockets.sockets.get(playerId);
+    room.players.forEach((player) => {
+    const playerId = player.id;
+    const target = io.sockets.sockets.get(playerId);
 
   if (!target) return;
 

@@ -18,6 +18,7 @@
   let prevX = 0, prevY = 0;
   let lastEmit = 0;
   let isDrawer = false;
+  let currentPlayers = [];
   const joinScreen = document.getElementById("joinScreen");
   const joinBtn = document.getElementById("joinBtn");
   const nameInput = document.getElementById("nameInput");
@@ -78,9 +79,11 @@
   function getPlayerColor(id) {
     return PLAYER_COLORS[getPlayerIndex(id) % PLAYER_COLORS.length];
   }
-  function getPlayerLabel(id) {
-    return `Player ${getPlayerIndex(id) + 1}`;
-  }
+  const playerNames = {};
+
+function getPlayerLabel(id) {
+  return playerNames[id] || "Unknown";
+}
 
   // --- Chat ---
   function appendChat({ name, nameColor, text, isSystem, isCorrect }) {
@@ -172,7 +175,13 @@ socket.on("connect", () => {
     ctx.lineWidth = brushSize;
   });
 
-  socket.on("playersUpdate", () => {});
+  socket.on("playersUpdate", (players) => {
+  currentPlayers = players.map(p => p.id);
+
+  players.forEach((p) => {
+    playerNames[p.id] = p.name;
+  });
+});
 
   socket.on("chatMessage", ({ sender, message }) => {
     appendChat({

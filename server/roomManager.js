@@ -15,13 +15,14 @@ function getRoom(roomId) {
       started: false,
       state: "waiting",
       correctGuessers: [],
-      host: null
+      host: null,
+      timer: null,
     };
   }
   return rooms[roomId];
 }
 
-function addPlayer(roomId, socketId) {
+function addPlayer(roomId, socketId, name) {
   const room = getRoom(roomId);
 
   if (!room.host) {
@@ -29,11 +30,16 @@ function addPlayer(roomId, socketId) {
   }
 
   // prevent duplicate joins
-  if (!room.players.includes(socketId)) {
-    room.players.push(socketId);
+  const exists = room.players.find(p => p.id === socketId);
+
+  if (!exists) {
+    room.players.push({
+      id: socketId,
+      name
+    });
   }
 
-  // initialize score for new player
+  // initialize score
   if (room.scores[socketId] === undefined) {
     room.scores[socketId] = 0;
   }
@@ -44,7 +50,9 @@ function addPlayer(roomId, socketId) {
 function removePlayer(socketId) {
   for (const roomId in rooms) {
     const room = rooms[roomId];
-    room.players = room.players.filter(id => id !== socketId);
+    room.players = room.players.filter(
+  p => p.id !== socketId
+);
   }
 }
 
@@ -89,10 +97,13 @@ function nextDrawer(room) {
     return;
   }
 
-  const currentIndex = room.players.indexOf(room.drawer);
+  const currentIndex = room.players.findIndex(
+    p => p.id === room.drawer
+  );
+
   const nextIndex = (currentIndex + 1) % room.players.length;
 
-  room.drawer = room.players[nextIndex];
+  room.drawer = room.players[nextIndex].id;
 }
 
 module.exports = {
