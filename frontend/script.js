@@ -3,7 +3,7 @@
     console.error("Window error:", msg, "at", src + ":" + line + ":" + col, err);
   };
 
-  const socket = io("http://localhost:3000", {
+  const socket = io({
   autoConnect: false
 });
 
