@@ -10,7 +10,7 @@ const registerSocketHandlers = require("./socketHandler");
 const app = express();
 
 // serve frontend
-const frontendPath = path.join(__dirname, "..", "frontend");
+const frontendPath = path.join(__dirname,"frontend");
 app.use(express.static(frontendPath));
 
 const server = http.createServer(app);
