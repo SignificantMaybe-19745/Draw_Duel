@@ -1,4 +1,8 @@
+const crypto = require("crypto");
+
 const rooms = {};
+
+const RECONNECT_GRACE_MS = 5 * 60 * 1000; // 5 minutes
 
 function getRoom(roomId) {
   if (!rooms[roomId]) {
@@ -17,16 +21,44 @@ function getRoom(roomId) {
       correctGuessers: [],
       host: null,
       timer: null,
+      disconnected: {}, // token -> { name, score, disconnectAt, cleanupTimer }
     };
   }
   return rooms[roomId];
 }
 
-function addPlayer(roomId, socketId, name) {
+// name: display name typed at join time (used as-is for brand new players;
+//   ignored in favor of the saved name when a valid reconnect token matches,
+//   since the identity is tied to the token, not whatever was typed)
+// token: optional reconnect token from a previous session in THIS room
+//
+// Returns { room, token, reconnected }
+//   token       -> the token the client should store (new, or the same one reused)
+//   reconnected -> true if this restored a disconnected player's score
+function addPlayer(roomId, socketId, name, token) {
   const room = getRoom(roomId);
 
   if (!room.host) {
     room.host = socketId;
+  }
+
+  let finalToken = token;
+  let finalName = name;
+  let restoredScore = null;
+  let reconnected = false;
+
+  if (token && room.disconnected[token]) {
+    const saved = room.disconnected[token];
+    clearTimeout(saved.cleanupTimer);
+    delete room.disconnected[token];
+
+    finalName = saved.name;
+    restoredScore = saved.score;
+    reconnected = true;
+  } else {
+    // No valid token for this room -> brand new identity, even if the
+    // client sent a (stale/foreign) token along with it.
+    finalToken = crypto.randomUUID();
   }
 
   // prevent duplicate joins
@@ -35,16 +67,48 @@ function addPlayer(roomId, socketId, name) {
   if (!exists) {
     room.players.push({
       id: socketId,
-      name
+      name: finalName,
+      token: finalToken,
     });
   }
 
-  // initialize score
+  // initialize / restore score
   if (room.scores[socketId] === undefined) {
-    room.scores[socketId] = 0;
+    room.scores[socketId] = reconnected ? restoredScore : 0;
   }
 
-  return room;
+  return { room, token: finalToken, reconnected };
+}
+
+// Called on socket disconnect. Moves the player into the room's
+// disconnected bucket (preserving name + score) for RECONNECT_GRACE_MS,
+// then removes them from the active players/scores lists.
+// Returns the removed player object (or null if not found).
+function disconnectPlayer(roomId, socketId) {
+  const room = getRoom(roomId);
+
+  const player = room.players.find(p => p.id === socketId);
+  if (!player) return null;
+
+  const score = room.scores[socketId] || 0;
+
+  if (player.token) {
+    const cleanupTimer = setTimeout(() => {
+      delete room.disconnected[player.token];
+    }, RECONNECT_GRACE_MS);
+
+    room.disconnected[player.token] = {
+      name: player.name,
+      score,
+      disconnectAt: Date.now(),
+      cleanupTimer,
+    };
+  }
+
+  room.players = room.players.filter(p => p.id !== socketId);
+  delete room.scores[socketId];
+
+  return player;
 }
 
 function removePlayer(socketId) {
@@ -111,6 +175,7 @@ module.exports = {
   getRoom,
   addPlayer,
   removePlayer,
+  disconnectPlayer,
   getRandomWord,
   nextDrawer,
   getWordChoices,

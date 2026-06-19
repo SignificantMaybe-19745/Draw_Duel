@@ -3,6 +3,7 @@ const {
   getRoom,
   addPlayer,
   removePlayer,
+  disconnectPlayer,
   getRandomWord,
   nextDrawer,
   getWordChoices,
@@ -147,10 +148,21 @@ function endRound(roomId) {
 
     console.log("🔥 SOCKET CONNECTED", socket.id);
 
-   socket.on("joinRoom", ({ roomId, name }) => {
+   socket.on("joinRoom", ({ roomId, name, token }) => {
   socket.join(roomId);
 
-  const room = addPlayer(roomId, socket.id, name);
+  const { room, token: sessionToken, reconnected } = addPlayer(roomId, socket.id, name, token);
+
+  // Hand the client back the token it should remember for this room,
+  // whether it's brand new or the same one reused on a successful reconnect.
+  socket.emit("sessionToken", { roomId, token: sessionToken });
+
+  if (reconnected) {
+    io.to(roomId).emit(
+      "systemMessage",
+      `🔄 ${getPlayerName(room, socket.id)} reconnected!`
+    );
+  }
 
   io.to(roomId).emit("playersUpdate", room.players);
   io.to(roomId).emit("scoreUpdate", room.scores);
@@ -208,12 +220,12 @@ function endRound(roomId) {
   for (const roomId in rooms) {
     const room = getRoom(roomId);
 
-    room.players = room.players.filter(
-  p => p.id !== socket.id
-);
+    const wasInRoom = room.players.some(p => p.id === socket.id);
+    if (!wasInRoom) continue;
 
-    // remove score entry
-    delete room.scores[socket.id];
+    // Moves player to room.disconnected (preserving name+score for the
+    // reconnect grace window) and removes them from the active lists.
+    disconnectPlayer(roomId, socket.id);
 
     // if host left, assign new host
     if (room.host === socket.id) {

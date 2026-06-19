@@ -171,12 +171,19 @@ function getPlayerLabel(id) {
 socket.on("connect", () => {
   console.log("Connected:", socket.id);
 
+  const savedToken = localStorage.getItem(`drawduel_token_${roomId}`);
+
   socket.emit("joinRoom", {
     roomId,
-    name: playerName
+    name: playerName,
+    token: savedToken || undefined
   });
 
   joinScreen.style.display = "none";
+});
+
+socket.on("sessionToken", ({ roomId: rid, token }) => {
+  localStorage.setItem(`drawduel_token_${rid}`, token);
 });
 
   socket.on("clearBoard", () => {
