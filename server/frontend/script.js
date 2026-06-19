@@ -48,19 +48,22 @@ const sizeButtons = document.querySelectorAll(".sizeBtn");
     canvas.width = rect.width;
     canvas.height = rect.height;
 
-    ctx.drawImage(tempCanvas, 0, 0);
+    
+    if (tempCanvas.width > 0 && tempCanvas.height > 0) {
+      ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, canvas.width, canvas.height);
+    }
     ctx.lineWidth = currentSize;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = currentColor;
   }
 
-  // Get mouse position correctly relative to canvas internal resolution
+  
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) * (canvas.width / rect.width),
-      y: (e.clientY - rect.top) * (canvas.height / rect.height)
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height
     };
   }
 
@@ -183,10 +186,12 @@ socket.on("connect", () => {
   socket.on("strokeHistory", (strokes) => {
     strokes.forEach((s) => {
       ctx.beginPath();
-      ctx.moveTo(s.x1, s.y1);
-      ctx.lineTo(s.x2, s.y2);
+      ctx.moveTo(s.x1 * canvas.width, s.y1 * canvas.height);
+      ctx.lineTo(s.x2 * canvas.width, s.y2 * canvas.height);
       ctx.strokeStyle = s.color || "#111";
-      ctx.lineWidth = s.size || 3;
+      ctx.lineWidth = (s.size || 0.005) * canvas.width;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.stroke();
     });
   });
@@ -194,10 +199,12 @@ socket.on("connect", () => {
   socket.on("draw", (data) => {
     if (typeof data.x1 !== "number") return;
     ctx.beginPath();
-    ctx.moveTo(data.x1, data.y1);
-    ctx.lineTo(data.x2, data.y2);
+    ctx.moveTo(data.x1 * canvas.width, data.y1 * canvas.height);
+    ctx.lineTo(data.x2 * canvas.width, data.y2 * canvas.height);
     ctx.strokeStyle = data.color || "#111";
-    ctx.lineWidth = data.size || 3;
+    ctx.lineWidth = (data.size || 0.005) * canvas.width;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.stroke();
   });
 
@@ -345,15 +352,21 @@ timerBox.classList.add("hiddenUI");
     console.log("Socket event:", event, args);
   });
 
-  // --- Drawing ---
-  canvas.addEventListener("mousedown", (e) => {
+    // --- Drawing ---
+  canvas.style.touchAction = "none";
+
+  canvas.addEventListener("pointerdown", (e) => {
+    if (!isDrawer) return;
+
     drawing = true;
+    canvas.setPointerCapture?.(e.pointerId);
+
     const pos = getPos(e);
     prevX = pos.x;
     prevY = pos.y;
   });
 
-  canvas.addEventListener("mousemove", (e) => {
+  canvas.addEventListener("pointermove", (e) => {
     if (!drawing || !isDrawer) return;
     if (Date.now() - lastEmit < 10) return;
     lastEmit = Date.now();
@@ -363,32 +376,32 @@ timerBox.classList.add("hiddenUI");
     const y = pos.y;
 
     ctx.beginPath();
-    ctx.moveTo(prevX, prevY);
-    ctx.lineTo(x, y);
+    ctx.moveTo(prevX * canvas.width, prevY * canvas.height);
+    ctx.lineTo(x * canvas.width, y * canvas.height);
     ctx.strokeStyle = currentColor;
     ctx.lineWidth = currentSize;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.stroke();
 
     socket.emit("draw", {
       roomId,
-      x1: prevX, y1: prevY,
-      x2: x, y2: y,
+      x1: prevX,
+      y1: prevY,
+      x2: x,
+      y2: y,
       color: currentColor,
-      size: currentSize,
+      size: currentSize / canvas.width,
     });
 
     prevX = x;
     prevY = y;
   });
 
-  restartBtn.addEventListener("click", () => {
-  gameOverOverlay.classList.add("hidden");
-  socket.emit("startGame", roomId);
-});
-
-  ["mouseup", "mouseleave"].forEach((ev) =>
-    canvas.addEventListener(ev, () => { drawing = false; })
+  ["pointerup", "pointercancel", "pointerleave"].forEach((ev) =>
+    canvas.addEventListener(ev, () => {
+      drawing = false;
+    })
   );
-
   console.log("script.js ready");
 })();

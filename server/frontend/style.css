@@ -198,6 +198,7 @@ html, body {
   gap: 6px;
   font-size: 13px;
   color: #d0d4ea;
+  
 }
 
 .lb-row {
@@ -323,16 +324,6 @@ html, body {
 #chatBox::-webkit-scrollbar-thumb { background: #2e3354; border-radius: 6px; }
 #chatBox::-webkit-scrollbar-track { background: transparent; }
 
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  #app {
-    grid-template-columns: 180px 1fr;
-    grid-template-rows: 1fr 240px;
-  }
-  #rightPanel {
-    grid-column: span 2;
-  }
-}
 
 #statusBox {
   display: flex;
@@ -544,4 +535,213 @@ html, body {
 .sizeBtn.active {
   background: #ffd54a;
   color: black;
+}
+
+/* =========================
+   MOBILE / TABLET LAYOUT
+   ========================= */
+
+#board {
+  touch-action: none;
+}
+
+@media (max-width: 900px) {
+  html,
+  body {
+    overflow: auto;
+    height: auto;
+  }
+
+  #topbar {
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .brand {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  #timer {
+    min-width: 60px;
+    padding: 6px 12px;
+    font-size: 16px;
+  }
+
+  #hintBox {
+    min-width: 90px;
+    max-width: 34vw;
+    padding: 6px 10px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #startBtn {
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 56px);
+    overflow: visible;
+  }
+
+  #centerPanel {
+    order: 1;
+    padding: 10px;
+    min-height: 52vh;
+  }
+
+  #canvasWrapper {
+    height: 52vh;
+    min-height: 360px;
+  }
+
+  #toolbar {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  #colors,
+  #sizes {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  #leftPanel {
+    order: 2;
+    height: auto;
+    padding: 10px;
+  }
+
+  #rightPanel {
+    order: 3;
+    height: auto;
+    padding: 10px;
+  }
+
+  #rightPanel .card {
+    flex: none;
+    height: 300px;
+  }
+
+  .card {
+    padding: 10px;
+  }
+
+  .card h3 {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  #chatBox {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  #chatInput {
+    font-size: 13px;
+    padding: 9px 10px;
+  }
+
+  #clearBtn {
+    padding: 9px;
+    font-size: 12px;
+  }
+
+  #wordBox,
+  #gameOverBox,
+  #joinBox {
+    width: 92vw;
+    max-width: 360px;
+    padding: 18px;
+  }
+
+  #wordChoices {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .wordBtn {
+    width: 100%;
+  }
+
+  .colorBtn {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sizeBtn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  #topbar {
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .brand {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  #hintBox {
+    max-width: 60vw;
+    order: 3;
+  }
+
+  #timer {
+    order: 2;
+  }
+
+  #startBtn {
+    order: 4;
+  }
+
+  #centerPanel {
+    min-height: 46vh;
+  }
+
+  #canvasWrapper {
+    min-height: 320px;
+    height: 46vh;
+  }
+
+  #leftPanel,
+  #rightPanel {
+    padding: 8px;
+  }
+
+  #rightPanel .card {
+    height: 260px;
+  }
+
+  .player-row,
+  .lb-row {
+    font-size: 12px;
+  }
+
+  #chatBox {
+    font-size: 11px;
+  }
+
+  #joinBox h1 {
+    font-size: 22px;
+  }
 }

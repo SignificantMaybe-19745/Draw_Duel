@@ -311,62 +311,75 @@ socket.on("selectWord", ({ roomId, word }) => {
   const room = getRoom(roomId);
 
   const guess = message.toLowerCase().trim();
-  const answer = room.word.toLowerCase();
+  const answer = room.word ? room.word.toLowerCase() : "";
+
+  // If the word is not chosen yet, just treat it as normal chat
+  if (!room.word) {
+    io.to(roomId).emit("chatMessage", {
+      sender: socket.id,
+      message
+    });
+    return;
+  }
+
+  // Drawer should not be able to guess the word
+  if (socket.id === room.drawer && guess === answer) {
+    return;
+  }
 
   if (guess === answer) {
+    // prevent duplicate scoring
+    if (room.correctGuessers.includes(socket.id)) return;
 
-  // prevent duplicate scoring
-  if (room.correctGuessers.includes(socket.id)) return;
+    const playerCount = room.players.length;
+    const guessOrder = room.correctGuessers.length;
 
-  const playerCount = room.players.length;
-  const guessOrder = room.correctGuessers.length;
+    // base by lobby size
+    let base = 80;
+    if (playerCount === 3) base = 100;
+    else if (playerCount === 4) base = 120;
+    else if (playerCount >= 5) base = 150;
 
-  // base by lobby size
-  let base = 80;
-  if (playerCount === 3) base = 100;
-  else if (playerCount === 4) base = 120;
-  else if (playerCount >= 5) base = 150;
+    // order bonus
+    let orderBonus = 20;
+    if (guessOrder === 0) orderBonus = 100;
+    else if (guessOrder === 1) orderBonus = 70;
+    else if (guessOrder === 2) orderBonus = 40;
 
-  // order bonus
-  let orderBonus = 20;
-  if (guessOrder === 0) orderBonus = 100;
-  else if (guessOrder === 1) orderBonus = 70;
-  else if (guessOrder === 2) orderBonus = 40;
+    // speed bonus
+    const speedBonus = room.timeLeft * 2;
 
-  // speed bonus
-  const speedBonus = room.timeLeft * 2;
+    const total = base + orderBonus + speedBonus;
 
-  const total = base + orderBonus + speedBonus;
+    if (!room.scores[socket.id]) room.scores[socket.id] = 0;
+    room.scores[socket.id] += total;
 
-  if (!room.scores[socket.id]) room.scores[socket.id] = 0;
-  room.scores[socket.id] += total;
+    room.correctGuessers.push(socket.id);
 
-  room.correctGuessers.push(socket.id);
+    io.to(roomId).emit(
+      "systemMessage",
+      `${getPlayerName(room, socket.id)} guessed correctly! +${total} 🎉`
+    );
 
-io.to(roomId).emit(
-  "systemMessage",
-  `${getPlayerName(room, socket.id)} guessed correctly! +${total} 🎉`
-);
+    io.to(roomId).emit("scoreUpdate", room.scores);
 
-io.to(roomId).emit("scoreUpdate", room.scores);
+    // everyone guessed correctly
+    const totalGuessers = room.players.length - 1;
 
-// everyone guessed correctly
-const totalGuessers = room.players.length - 1;
+    if (room.correctGuessers.length >= totalGuessers) {
+      clearInterval(room.timer);
 
-if (room.correctGuessers.length >= totalGuessers) {
-  clearInterval(room.timer);
+      io.to(roomId).emit(
+        "systemMessage",
+        "🎉 Everyone guessed correctly!"
+      );
 
-  io.to(roomId).emit(
-    "systemMessage",
-    "🎉 Everyone guessed correctly!"
-  );
+      endRound(roomId);
+      return;
+    }
 
-  endRound(roomId);
-  return;
-}
-
-return;
-}
+    return;
+  }
 
   io.to(roomId).emit("chatMessage", {
     sender: socket.id,
